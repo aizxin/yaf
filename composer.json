@@ -1,0 +1,24 @@
+{
+    "name": "sow/yaf",
+    "description": "yaf layui",
+    "authors": [
+        {
+            "name": "aizxin",
+            "email": "aizxin@gmail.com"
+        }
+    ],
+    "require": {
+        "catfan/Medoo": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sof\\Models\\": "application/models"
+        }
+    },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    }
+}
