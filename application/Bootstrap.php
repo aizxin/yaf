@@ -28,6 +28,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 
 	public function _initView(\Yaf\Dispatcher $dispatcher) {
 		//在这里注册自己的view控制器，例如smarty,firekylin
+		Yaf\Dispatcher::getInstance()->autoRender(FALSE);
 	}
 
 	/**
@@ -47,13 +48,124 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	}
 
 	/**
-	 * 载入数据库
+	 * 载入数据库持久连接
 	 */
     public function _initDB(Yaf\Dispatcher $dispatcher)
     {
     	$config = Yaf\Application::app()->getConfig()->toArray();
-    	$config['db']['option'] = array(PDO::ATTR_CASE => PDO::CASE_NATURAL);
+    	// ATTR_PERSISTENT 配置数据库 持久连接
+    	$config['db']['option'] = array(PDO::ATTR_CASE => PDO::CASE_NATURAL,PDO::ATTR_PERSISTENT=>true);
         \Yaf\Registry::set('db', new \Medoo\Medoo( $config['db'] ) );
     }
+
+    /**
+	 * 载入session
+	 */
+	public function _initSession()
+	{
+		$config = Yaf\Application::app()->getConfig();
+	    $session = null;
+	    switch ($config->session->type) {
+	        case 'redis':
+	            $session = new \Phalcon\Session\Adapter\Redis([
+	                "uniqueId"   => $config->session->unique,
+	                "host"       => $config->redis->host,
+	                "port"       => $config->redis->port,
+	                // "auth"       => $config->redis->auth,
+	                "persistent" => $config->redis->persistent, //数据库持久连接
+	                "lifetime"   => $config->session->lifetime,
+	                "prefix"     => $config->redis->prefix,
+	                "index"      => $config->redis->index
+	            ]);
+	            break;
+	        case 'file':
+	        default:
+	            $session = new \Phalcon\Session\Adapter\Files([
+	                "uniqueId"   => $config->session->unique,
+	            ]);
+	            break;
+	    }
+	    if($session != null){
+	        $session->start();
+	    }
+	    \Yaf\Registry::set('session', $session );
+	}
+
+	/**
+	 * 载入cache
+	 */
+	public function _initCache()
+	{
+		$config  = Yaf\Application::app()->getConfig();
+	    $frontCache = new Phalcon\Cache\Frontend\Data(
+	        [
+	            "lifetime" => $config->cache->lifetime,
+	        ]
+	    );
+	    $cache = null;
+	    switch (strtolower($config->cache->type)) {
+	        case 'memcached':
+	            $cache = new \Phalcon\Cache\Backend\Libmemcached(
+	                $frontCache,
+	                [
+	                    "host" => $config->memcached->host,
+	                    "port" => $config->memcached->port,
+	                    "weight" => $config->memcached->weight,
+	                    'statsKey' => '_YAF',
+	                ]
+	            );
+	            break;
+	        case 'redis':
+	            $cache = new \Phalcon\Cache\Backend\Redis(
+	                $frontCache,
+	                [
+	                    'host' => $config->redis->host,
+	                    'port' => $config->redis->port,
+	                    // 'auth' => $config->redis->auth,
+	                    'persistent' => $config->redis->persistent, //数据库持久连接
+	                    'index' => $config->redis->index,
+	                    'prefix' => $config->redis->prefix,
+	                    'statsKey' => '_YAF',
+	                ]
+	            );
+	            break;
+	        case 'mongo':
+	            $server = sprintf("mongodb://%s:%d", $config->mongo->host, $config->mongo->port);
+	            $cache = new \Phalcon\Cache\Backend\Mongo(
+	                $frontCache,
+	                [
+	                    'server' => $server,
+	                    'db' => $config->mongo->db,
+	                    'collection' => $config->mongo->collection,
+	                ]
+	            );
+	            break;
+	        case 'file':
+	        default:
+	            $dir = $config->application->cacheDir;
+	            if (!is_dir($dir)) mkdir($dir, 0777, true);
+	            $cache = new \Phalcon\Cache\Backend\File(
+	                $frontCache,
+	                [
+	                    "cacheDir" => $dir,
+	                ]
+	            );
+	            break;
+	    }
+	    \Yaf\Registry::set('cache', $cache );
+	}
+
+	/**
+	 *  日志记录
+	 */
+	public function _initLogger()
+	{
+		$config = Yaf\Application::app()->getConfig();
+	    $day = date('Ymd');
+	    $dir = $config->application->logDir . $day;
+	    if (!is_dir($dir)) mkdir($dir, 0777, true);
+	    $logger = new \Phalcon\Logger\Adapter\File($dir."/{$day}.log");
+	    \Yaf\Registry::set('log', $logger);
+	}
 
 }
