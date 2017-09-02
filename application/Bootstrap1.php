@@ -28,7 +28,10 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 
 	public function _initView(\Yaf\Dispatcher $dispatcher) {
 		//在这里注册自己的view控制器，例如smarty,firekylin
-		// Yaf\Dispatcher::getInstance()->autoRender(FALSE);
+		// 如果是Ajax请求, 则关闭HTML输出
+		if($dispatcher->getRequest()->isXmlHttpRequest()){
+			Yaf\Dispatcher::getInstance()->disableView();
+		}
 	}
 
 	/**
