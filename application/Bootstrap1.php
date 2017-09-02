@@ -55,7 +55,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
     	$config = Yaf\Application::app()->getConfig()->toArray();
     	// ATTR_PERSISTENT 配置数据库 持久连接
     	$config['db']['option'] = array(PDO::ATTR_CASE => PDO::CASE_NATURAL,PDO::ATTR_PERSISTENT=>true);
-        \Yaf\Registry::set('db', new \Medoo\Medoo( $config['db'] ) );
+        \Yaf\Registry::set('db', new \Vof\Medoo( $config['db'] ) );
     }
 
     /**
@@ -67,11 +67,11 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	    $session = null;
 	    switch ($config->session->type) {
 	        case 'redis':
-	            $session = new \Phalcon\Session\Adapter\Redis([
+	        	$session = new \Vof\Session\Adapter\Redis([
 	                "uniqueId"   => $config->session->unique,
 	                "host"       => $config->redis->host,
 	                "port"       => $config->redis->port,
-	                // "auth"       => $config->redis->auth,
+	                "auth"       => $config->redis->auth,
 	                "persistent" => $config->redis->persistent, //数据库持久连接
 	                "lifetime"   => $config->session->lifetime,
 	                "prefix"     => $config->redis->prefix,
@@ -80,7 +80,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	            break;
 	        case 'file':
 	        default:
-	            $session = new \Phalcon\Session\Adapter\Files([
+	            $session = new \Vof\Session\Adapter\Files([
 	                "uniqueId"   => $config->session->unique,
 	            ]);
 	            break;
@@ -97,7 +97,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	public function _initCache()
 	{
 		$config  = Yaf\Application::app()->getConfig();
-	    $frontCache = new \Phalcon\Cache\Frontend\Data(
+	    $frontCache = new \Vof\Cache\Frontend\Data(
 	        [
 	            "lifetime" => $config->cache->lifetime,
 	        ]
@@ -105,7 +105,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	    $cache = null;
 	    switch (strtolower($config->cache->type)) {
 	        case 'memcached':
-	            $cache = new \Phalcon\Cache\Backend\Libmemcached(
+	            $cache = new \Vof\Cache\Backend\Libmemcached(
 	                $frontCache,
 	                [
 	                    "host" => $config->memcached->host,
@@ -116,12 +116,12 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	            );
 	            break;
 	        case 'redis':
-	            $cache = new \Phalcon\Cache\Backend\Redis(
+	            $cache = new \Vof\Cache\Backend\Redis(
 	                $frontCache,
 	                [
 	                    'host' => $config->redis->host,
 	                    'port' => $config->redis->port,
-	                    // 'auth' => $config->redis->auth,
+	                    'auth' => $config->redis->auth,
 	                    'persistent' => $config->redis->persistent, //数据库持久连接
 	                    'index' => $config->redis->index,
 	                    'prefix' => $config->redis->prefix,
@@ -131,7 +131,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	            break;
 	        case 'mongo':
 	            $server = sprintf("mongodb://%s:%d", $config->mongo->host, $config->mongo->port);
-	            $cache = new \Phalcon\Cache\Backend\Mongo(
+	            $cache = new \Vof\Cache\Backend\Mongo(
 	                $frontCache,
 	                [
 	                    'server' => $server,
@@ -144,7 +144,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	        default:
 	            $dir = $config->application->cacheDir;
 	            if (!is_dir($dir)) mkdir($dir, 0777, true);
-	            $cache = new \Phalcon\Cache\Backend\File(
+	            $cache = new \Vof\Cache\Backend\File(
 	                $frontCache,
 	                [
 	                    "cacheDir" => $dir,
@@ -164,7 +164,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	    $day = date('Ymd');
 	    $dir = $config->application->logDir . $day;
 	    if (!is_dir($dir)) mkdir($dir, 0777, true);
-	    $logger = new \Phalcon\Logger\Adapter\File($dir."/{$day}.log");
+	    $logger = new \Vof\Logger\Adapter\File($dir."/{$day}.log");
 	    \Yaf\Registry::set('log', $logger);
 	}
 
