@@ -55,6 +55,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
     	$config = Yaf\Application::app()->getConfig()->toArray();
     	// ATTR_PERSISTENT 配置数据库 持久连接
     	$config['db']['option'] = array(PDO::ATTR_CASE => PDO::CASE_NATURAL,PDO::ATTR_PERSISTENT=>true);
+        // \Yaf\Registry::set('db', new \Medoo\Medoo( $config['db'] ) );
         \Yaf\Registry::set('db', new \Medoo\Medoo( $config['db'] ) );
     }
 
