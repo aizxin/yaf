@@ -67,6 +67,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	    $session = null;
 	    switch ($config->session->type) {
 	        case 'redis':
+	        	// $session = new \Vof\Session\Adapter\Redis([
 	            $session = new \Phalcon\Session\Adapter\Redis([
 	                "uniqueId"   => $config->session->unique,
 	                "host"       => $config->redis->host,
@@ -80,6 +81,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	            break;
 	        case 'file':
 	        default:
+	            // $session = new \Vof\Session\Adapter\Files([
 	            $session = new \Phalcon\Session\Adapter\Files([
 	                "uniqueId"   => $config->session->unique,
 	            ]);
@@ -97,7 +99,8 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	public function _initCache()
 	{
 		$config  = Yaf\Application::app()->getConfig();
-	    $frontCache = new Phalcon\Cache\Frontend\Data(
+	    // $frontCache = new \Vof\Cache\Frontend\Data(
+	    $frontCache = new \Phalcon\Cache\Frontend\Data(
 	        [
 	            "lifetime" => $config->cache->lifetime,
 	        ]
@@ -105,6 +108,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	    $cache = null;
 	    switch (strtolower($config->cache->type)) {
 	        case 'memcached':
+	            // $cache = new \Vof\Cache\Backend\Libmemcached(
 	            $cache = new \Phalcon\Cache\Backend\Libmemcached(
 	                $frontCache,
 	                [
@@ -116,6 +120,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	            );
 	            break;
 	        case 'redis':
+	            // $cache = new \Vof\Cache\Backend\Redis(
 	            $cache = new \Phalcon\Cache\Backend\Redis(
 	                $frontCache,
 	                [
@@ -131,6 +136,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	            break;
 	        case 'mongo':
 	            $server = sprintf("mongodb://%s:%d", $config->mongo->host, $config->mongo->port);
+	            // $cache = new \Vof\Cache\Backend\Mongo(
 	            $cache = new \Phalcon\Cache\Backend\Mongo(
 	                $frontCache,
 	                [
@@ -144,6 +150,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	        default:
 	            $dir = $config->application->cacheDir;
 	            if (!is_dir($dir)) mkdir($dir, 0777, true);
+	            // $cache = new \Vof\Cache\Backend\File(
 	            $cache = new \Phalcon\Cache\Backend\File(
 	                $frontCache,
 	                [
@@ -164,6 +171,7 @@ class Bootstrap extends Yaf\Bootstrap_Abstract {
 	    $day = date('Ymd');
 	    $dir = $config->application->logDir . $day;
 	    if (!is_dir($dir)) mkdir($dir, 0777, true);
+	    // $logger = new \Vof\Logger\Adapter\File($dir."/{$day}.log");
 	    $logger = new \Phalcon\Logger\Adapter\File($dir."/{$day}.log");
 	    \Yaf\Registry::set('log', $logger);
 	}
